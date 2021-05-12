@@ -40,7 +40,7 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
 // Routes Pedidos
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \PedidoController::class . ':TraerTodos');
-  $group->get('/{pedidos}', \PedidoController::class . ':TraerUno');
+  $group->get('/{codigo}', \PedidoController::class . ':TraerUno');
   $group->post('[/]', \PedidoController::class . ':CargarUno');
   $group->post('/baja', \PedidoController::class . ':BorrarUno');
 });
