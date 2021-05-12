@@ -7,11 +7,11 @@
 
 class Pedido
 {
-    private $id;
-    private $codigo;
-    private $estado;
-    private $tiempo_entrega;
-    private $foto;
+    public $id;
+    public $codigo;
+    public $estado;
+    public $foto;
+    public $tiempo_entrega;
 
     public function crearPedido()
     {
