@@ -15,6 +15,7 @@ require_once './db/AccesoDatos.php';
 // require_once './middlewares/Logger.php';
 
 require_once './controllers/UsuarioController.php';
+require_once './controllers/PedidoController.php';
 
 // Load ENV
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -27,13 +28,22 @@ $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
 
 
-// Routes
+// Routes Usuarios
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->get('[/]', \UsuarioController::class . ':TraerTodos');
     $group->get('/{usuario}', \UsuarioController::class . ':TraerUno');
     $group->post('[/]', \UsuarioController::class . ':CargarUno');
     $group->post('/baja', \UsuarioController::class . ':BorrarUno');
   });
+
+  
+// Routes Pedidos
+$app->group('/pedidos', function (RouteCollectorProxy $group) {
+  $group->get('[/]', \PedidoController::class . ':TraerTodos');
+  $group->get('/{pedidos}', \PedidoController::class . ':TraerUno');
+  $group->post('[/]', \PedidoController::class . ':CargarUno');
+  $group->post('/baja', \PedidoController::class . ':BorrarUno');
+});
 
 $app->get('[/]', function (Request $request, Response $response) {    
     $response->getBody()->write("Slim Framework 4 PHP");

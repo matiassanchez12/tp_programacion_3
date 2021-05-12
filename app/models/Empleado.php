@@ -4,19 +4,23 @@
 // tomar una foto de la mesa con sus integrantes y relacionarlo con el pedido.
 // id, listaPedidos, pediente(bool), foto, estado 
 
-class Usuario
+class Empleado
 {
     public $id;
-    public $usuario;
-    public $clave;
+    public $id_usuario;
+    public $pedidos; //llamo al 
+    public $nombre;
+    public $rol;
 
     public function crearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (usuario, clave) VALUES (:usuario, :clave)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (usuario, clave, nombre, rol) VALUES (:usuario, :clave, :nombre, :rol)");
         $claveHash = password_hash($this->clave, PASSWORD_DEFAULT);
         $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
         $consulta->bindValue(':clave', $claveHash);
+        $consulta->bindValue(':nombre', $this->nombre, PDO::PARAM_STR);
+        $consulta->bindValue(':rol', $this->rol, PDO::PARAM_STR);
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
