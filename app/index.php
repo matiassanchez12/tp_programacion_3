@@ -44,14 +44,15 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \PedidoController::class . ':TraerTodos');
   $group->get('/{codigo}', \PedidoController::class . ':TraerUno');
   $group->post('/altapedido', \PedidoController::class . ':CargarUno');
-  $group->post('/{codigo}/nuevoestado', \PedidoController::class . ':ModificarUno');
+  $group->put('/{codigo}/nuevoestado', \PedidoController::class . ':ModificarUno');
   // $group->post('/{codigo}/altaproducto', \ProductoController::class . ':CargarUno');
-  $group->post('/baja', \PedidoController::class . ':BorrarUno');
+  $group->delete('/baja', \PedidoController::class . ':BorrarUno');
 });
 
 $app->group('/empleados', function (RouteCollectorProxy $group) {
   $group->get('[/]', \EmpleadoController::class . ':TraerTodos');
   $group->get('/{nombre}', \EmpleadoController::class . ':TraerUno');
+  $group->get('/roles/{rol}', \EmpleadoController::class . ':ListarPorRol');
   $group->get('/{id}/pedidosempleado', \EmpleadoController::class . ':TraerPedidosDeEmpleado');
   $group->post('/altaempleado', \EmpleadoController::class . ':CargarUno');
   $group->post('/baja', \EmpleadoController::class . ':BorrarUno');

@@ -9,19 +9,13 @@ class PedidoController extends Pedido implements IApiUsable
   {
     $parametros = $request->getParsedBody();
 
-    $nombre_cliente = $parametros['nombre_cliente'];
-    $foto = $parametros['foto'];
-    // $tiempo_entrega = $parametros['tiempo_entrega'];
-    // $estado = $parametros['estado'];
+    $estado = $parametros['estado'];
     $tiempo_entrega = '';
-    $estado = '';
 
     $pedido = new Pedido();
-    $pedido->nombre_cliente = $nombre_cliente;
     $pedido->codigo = GenerateRandomToken::getToken(5);
     $pedido->estado = $estado;
     $pedido->tiempo_entrega = $tiempo_entrega;
-    $pedido->foto = $foto;
     $pedido->crearPedido();
 
     $payload = json_encode(array("mensaje" => "Pedido creado con exito"));

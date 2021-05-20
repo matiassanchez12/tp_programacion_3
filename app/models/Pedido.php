@@ -1,26 +1,18 @@
 <?php 
-// Si al mozo le hacen un pedido de un vino, una cerveza y unas empanadas, deberían los
-// empleados correspondientes ver estos pedidos en su listado de “pendientes”, con la opción de
-// tomar una foto de la mesa con sus integrantes y relacionarlo con el pedido.
-// id, listaPedidos, pediente(bool), foto, estado 
-// producto : id, id_pedido, nombre, tipo
 
-
-//Clase pedido pero tambien podria ser Cliente, cumple la misma funcion
 class Pedido
 {
     public $id;
     public $codigo;
-    public $estado;
+    public $estado; 
     public $tiempo_entrega;
-
+        
     public function crearPedido()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigo, estado, foto, tiempo_entrega) VALUES (:codigo, :estado, :foto, :tiempo_entrega)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigo, estado, tiempo_entrega) VALUES (:codigo, :estado, :tiempo_entrega)");
         $consulta->bindValue(':codigo', $this->codigo, PDO::PARAM_STR);
         $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
-        $consulta->bindValue(':foto', $this->foto, PDO::PARAM_STR);
         $consulta->bindValue(':tiempo_entrega', $this->tiempo_entrega, PDO::PARAM_STR);
         $consulta->execute();
 

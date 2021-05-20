@@ -37,8 +37,6 @@ class Empleado
 
         return $consulta->fetchObject('Empleado');
     }
-    
-  
 
     public static function modificarEmpleado($nombre, $id)
     {
@@ -57,5 +55,15 @@ class Empleado
         $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->bindValue(':fechaBaja', date_format($fecha, 'Y-m-d H:i:s'));
         $consulta->execute();
+    }
+
+    public function obtenerEmpleadosPorRol($rol)
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM empleados WHERE rol = :rol");
+        $consulta->bindValue(':rol', $rol, PDO::PARAM_STR);
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Empleado');
     }
 }

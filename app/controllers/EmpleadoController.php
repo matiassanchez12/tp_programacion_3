@@ -13,7 +13,6 @@ class EmpleadoController extends Empleado implements IApiUsable
         $nombre = $parametros['nombre'];
         $rol = $parametros['rol'];
         
-        // Creamos el usuario
         $empleado = new Empleado();
         $empleado->id_usuario = $id_usuario;
         $empleado->nombre = $nombre;
@@ -43,6 +42,17 @@ class EmpleadoController extends Empleado implements IApiUsable
         $id = $args['id'];
         $productos = Producto::obtenerPedidosDeEmpleado($id);
         $payload = json_encode(array("listaEmpleados" => $productos));
+
+        $response->getBody()->write($payload);
+        return $response
+          ->withHeader('Content-Type', 'application/json');
+    }
+
+    public function ListarPorRol($request, $response, $args)
+    {
+        $rol = $args['rol'];
+        $empleados = Empleado::obtenerEmpleadosPorRol($rol);
+        $payload = json_encode(array("listaEmpleados" => $empleados));
 
         $response->getBody()->write($payload);
         return $response
