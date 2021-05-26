@@ -1,7 +1,8 @@
-<!-- require_once './models/Usuario.php';
+<?php
+require_once './models/Cliente.php';
 require_once './interfaces/IApiUsable.php';
 
-class UsuarioController extends Usuario implements IApiUsable
+class ClienteController extends Cliente implements IApiUsable
 {
   public function CargarUno($request, $response, $args)
   {
@@ -9,14 +10,18 @@ class UsuarioController extends Usuario implements IApiUsable
 
     $usuario = $parametros['usuario'];
     $clave = $parametros['clave'];
+    $codigo_pedido = $parametros['codigo_pedido'];
 
-    // Creamos el usuario
-    $usr = new Usuario();
-    $usr->usuario = $usuario;
-    $usr->clave = $clave;
-    $usr->crearUsuario();
+    $this->usuario = $usuario;
+    $this->clave = $clave;
+    $this->codigo_pedido = $codigo_pedido;
 
-    $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+    $fecha = new DateTime(date("d-m-Y "));
+    $this->fecha_ingreso = date_format($fecha, 'Y-m-d H:i:s');
+    
+    $this->crearCliente();
+
+    $payload = json_encode(array("mensaje" => "Cliente creado con exito"));
 
     $response->getBody()->write($payload);
     return $response
@@ -37,8 +42,8 @@ class UsuarioController extends Usuario implements IApiUsable
 
   public function TraerTodos($request, $response, $args)
   {
-    $lista = Usuario::obtenerTodos();
-    $payload = json_encode(array("listaUsuario" => $lista));
+    $lista = Cliente::obtenerTodos();
+    $payload = json_encode(array("listaClientes" => $lista));
 
     $response->getBody()->write($payload);
     return $response
@@ -72,4 +77,4 @@ class UsuarioController extends Usuario implements IApiUsable
     return $response
       ->withHeader('Content-Type', 'application/json');
   }
-} -->
+}

@@ -1,17 +1,18 @@
 <?php
 
-class Empleado extends Usuario
+class Cliente extends Usuario
 {
+    public $codigo_pedido;
     public $fecha_ingreso;
-    public $rol;
 
-    public function crearEmpleado()
+    public function crearCliente()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO empleados (id_usuario, nombre, rol) VALUES (:id_usuario, :nombre, :rol)");
-        $consulta->bindValue(':id_usuario', $this->id_usuario, PDO::PARAM_INT);
-        $consulta->bindValue(':nombre', $this->nombre, PDO::PARAM_STR);
-        $consulta->bindValue(':rol', $this->rol, PDO::PARAM_STR);
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO clientes (usuario, clave, codigo_pedido, fecha_ingreso) VALUES (:usuario, :clave, :codigo_pedido, :fecha_ingreso)");
+        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_INT);
+        $consulta->bindValue(':clave', $this->clave, PDO::PARAM_STR);
+        $consulta->bindValue(':codigo_pedido', $this->codigo_pedido, PDO::PARAM_STR);
+        $consulta->bindValue(':fecha_ingreso', $this->fecha_ingreso, PDO::PARAM_STR);
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
@@ -20,10 +21,10 @@ class Empleado extends Usuario
     public static function obtenerTodos()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM empleados");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM clientes");
         $consulta->execute();
 
-        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Empleado');
+        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Cliente');
     }
 
     public static function obtenerEmpleado($nombre)
@@ -53,15 +54,5 @@ class Empleado extends Usuario
         $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->bindValue(':fechaBaja', date_format($fecha, 'Y-m-d H:i:s'));
         $consulta->execute();
-    }
-
-    public function obtenerEmpleadosPorRol($rol)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM empleados WHERE rol = :rol");
-        $consulta->bindValue(':rol', $rol, PDO::PARAM_STR);
-        $consulta->execute();
-
-        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Empleado');
     }
 }

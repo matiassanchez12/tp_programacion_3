@@ -3,7 +3,7 @@
 class Mesa
 {
     public $id;
-    public $codigo_cliente;
+    public $id_cliente;
     public $foto;
 
     public function crearMesa()
