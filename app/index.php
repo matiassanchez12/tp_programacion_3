@@ -62,6 +62,11 @@ $app->group('/empleados', function (RouteCollectorProxy $group) {
   $group->post('/baja', \EmpleadoController::class . ':BorrarUno');
 });
 
+$app->group('/clientes', function (RouteCollectorProxy $group) {
+  $group->get('[/]', \ClienteController::class . ':TraerTodos');
+  $group->post('/altacliente', \ClienteController::class . ':CargarUno');
+});
+
 $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \ProductoController::class . ':TraerTodos');
   $group->get('/{id}', \ProductoController::class . ':TraerUno');
@@ -75,10 +80,7 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
 });
 
 
-$app->group('/clientes', function (RouteCollectorProxy $group) {
-  $group->get('[/]', \ClienteController::class . ':TraerTodos');
-  $group->post('/altacliente', \ClienteController::class . ':CargarUno');
-});
+
 
 $app->get('[/]', function (Request $request, Response $response) {
   

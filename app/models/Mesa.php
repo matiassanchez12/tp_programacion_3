@@ -4,14 +4,16 @@ class Mesa
 {
     public $id;
     public $id_cliente;
-    public $foto;
+    public $codigo;
+    public $estado;
 
     public function crearMesa()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO mesas (codigo_cliente, foto) VALUES (:codigo_cliente, :foto)");
-        $consulta->bindValue(':codigo_cliente', $this->codigo_cliente, PDO::PARAM_STR);
-        $consulta->bindValue(':foto', $this->foto, PDO::PARAM_STR);
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO mesas (id_cliente, codigo, estado) VALUES (:id_cliente, :codigo, :estado)");
+        $consulta->bindValue(':id_cliente', $this->id_cliente, PDO::PARAM_STR);
+        $consulta->bindValue(':codigo', $this->codigo, PDO::PARAM_STR);
+        $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
