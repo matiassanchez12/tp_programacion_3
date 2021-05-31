@@ -3,15 +3,16 @@
 class Cliente extends Usuario
 {
     public $codigo_pedido;
-    public $fecha_ingreso;
+    public $tiempo_espera;
 
     public function crearCliente()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO clientes (usuario, clave, codigo_pedido, fecha_ingreso) VALUES (:usuario, :clave, :codigo_pedido, :fecha_ingreso)");
-        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_INT);
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO clientes (usuario, clave, fecha_ingreso, codigo_pedido, tiempo_espera) VALUES (:usuario, :clave, :fecha_ingreso, :codigo_pedido, :tiempo_espera)");
+        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
         $consulta->bindValue(':clave', $this->clave, PDO::PARAM_STR);
         $consulta->bindValue(':codigo_pedido', $this->codigo_pedido, PDO::PARAM_STR);
+        $consulta->bindValue(':tiempo_espera', $this->tiempo_espera, PDO::PARAM_STR);
         $consulta->bindValue(':fecha_ingreso', $this->fecha_ingreso, PDO::PARAM_STR);
         $consulta->execute();
 

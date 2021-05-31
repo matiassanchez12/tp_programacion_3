@@ -1,17 +1,19 @@
 <?php
 
+require_once "Usuario.php";
+
 class Empleado extends Usuario
 {
-    public $fecha_ingreso;
     public $rol;
 
     public function crearEmpleado()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO empleados (id_usuario, nombre, rol) VALUES (:id_usuario, :nombre, :rol)");
-        $consulta->bindValue(':id_usuario', $this->id_usuario, PDO::PARAM_INT);
-        $consulta->bindValue(':nombre', $this->nombre, PDO::PARAM_STR);
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO empleados (usuario, clave, rol, fecha_ingreso) VALUES (:usuario, :clave, :rol, :fecha_ingreso)");
+        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
+        $consulta->bindValue(':clave', $this->clave, PDO::PARAM_STR);
         $consulta->bindValue(':rol', $this->rol, PDO::PARAM_STR);
+        $consulta->bindValue(':fecha_ingreso', $this->fecha_ingreso);
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
