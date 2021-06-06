@@ -2,22 +2,25 @@
 require_once './models/Producto.php';
 require_once './interfaces/IApiUsable.php';
 
-class ProductoController extends Producto implements IApiUsable
+use \App\Models\Producto as Producto;
+
+class ProductoController implements IApiUsable
 {
     public function CargarUno($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
 
-        $id_pedido = $args['idpedido'];
-        $id_empleado = $parametros['id_empleado'];
+        $nombre = $parametros['nombre'];
+        $precio = $parametros['precio'];
         $tipo = $parametros['tipo'];
         
         // Creamos el usuario
         $producto = new Producto();
-        $producto->id_empleado = $id_empleado;
-        $producto->id_pedido = $id_pedido;
+        $producto->precio = $precio;
+        $producto->nombre = $nombre;
         $producto->tipo = $tipo;
-        $producto->crearProducto();
+
+        $producto->save();
 
         $payload = json_encode(array("mensaje" => "Producto creado con exito"));
 
@@ -28,9 +31,8 @@ class ProductoController extends Producto implements IApiUsable
 
     public function TraerUno($request, $response, $args)
     {
-        // Buscamos pedido por codigo
         $id = $args['id'];
-        $producto = Producto::obtenerProducto($id);
+        $producto = Producto::find($id);
         $payload = json_encode($producto);
 
         $response->getBody()->write($payload);
@@ -40,7 +42,7 @@ class ProductoController extends Producto implements IApiUsable
 
     public function TraerTodos($request, $response, $args)
     {
-        $lista = Producto::obtenerTodos();
+        $lista = Producto::all();
         $payload = json_encode(array("listaProductos" => $lista));
 
         $response->getBody()->write($payload);
@@ -55,12 +57,14 @@ class ProductoController extends Producto implements IApiUsable
         $id = $parametros['id'];
         $tipo = $parametros['tipo'];
 
+        $producto = Producto::find($id);
+
+        $producto->tipo = $tipo;
+
+        $producto->save();
+
         $mensaje = "Producto modificado con exito";
         
-        if(Producto::modificarProducto($id, $tipo) < 1){
-          $mensaje = "El id no existe, intentar nuevamente";
-        }
-
         $payload = json_encode(array("mensaje" => $mensaje));
 
         $response->getBody()->write($payload);
@@ -73,14 +77,28 @@ class ProductoController extends Producto implements IApiUsable
         $parametros = $request->getParsedBody();
 
         $id = $parametros['id'];
-        
-        $mensaje = "Producto modificado con exito";
-        
-        if(Producto::borrarProducto($id) < 1){
-          $mensaje = "El id no existe, intentar nuevamente";
-        }
+
+        $producto = Producto::find($id);
+
+        $producto->delete();
+
+        $mensaje = "Producto eliminado con exito";
 
         $payload = json_encode(array("mensaje" => $mensaje));
+
+        $response->getBody()->write($payload);
+        return $response
+          ->withHeader('Content-Type', 'application/json');
+    }
+
+    
+    public function TraerProductosPorTipo($request, $response, $args)
+    {
+        $tipo = $args['tipo'];
+
+        $lista = Producto::where('tipo', $tipo)->get();
+
+        $payload = json_encode(array("lista productos de tipo '$tipo'" => $lista));
 
         $response->getBody()->write($payload);
         return $response

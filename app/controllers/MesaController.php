@@ -44,16 +44,56 @@ class MesaController extends Mesa implements IApiUsable
 
   public function TraerUno($request, $response, $args)
   {
+    $parametros = $request->getParsedBody();
     
+    $id_mesa = $parametros['id_mesa'];
+
+    $mesa = Mesa::obtenerMesa($id_mesa);
+
+    $payload = json_encode($mesa);
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
   }
 
   public function ModificarUno($request, $response, $args)
   {
-     
+    $parametros = $request->getParsedBody();
+
+    $id_mesa = $parametros['id_mesa'];
+    $nuevo_estado = $parametros['nuevo_estado'];
+
+    Mesa::modificarMesa($nuevo_estado, $id_mesa);
+
+    $fecha = new DateTime(date("Y-m-d H:i:s"));
+    
+    DetalleEstadoMesa::crearDetalleMesa($id_mesa, date_format($fecha, 'Y-m-d H:i:s'), $nuevo_estado);
+
+    $payload = json_encode(array("mensaje" => "Mesa modificada con exito"));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
   }
 
   public function BorrarUno($request, $response, $args)
   {
-     
+    $parametros = $request->getParsedBody();
+
+    $id_mesa = $parametros['id_mesa'];
+    $nuevo_estado = $parametros['nuevo_estado'];
+
+    Mesa::modificarMesa($nuevo_estado, $id_mesa);
+
+    $fecha = new DateTime(date("Y-m-d H:i:s"));
+    
+    DetalleEstadoMesa::crearDetalleMesa($id_mesa, date_format($fecha, 'Y-m-d H:i:s'), $nuevo_estado);
+
+    $payload = json_encode(array("mensaje" => "Mesa borrada con exito"));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
   }
 }
