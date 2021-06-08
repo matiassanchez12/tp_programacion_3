@@ -4,25 +4,20 @@ require_once './models/DetalleEstadoMesa.php';
 require_once './models/GenerateRandomToken.php';
 require_once './interfaces/IApiUsable.php';
 
-class MesaController extends Mesa implements IApiUsable
+use \App\Models\Mesa as Mesa;
+use \App\Models\DetalleEstadoMesa as DetalleEstadoMesa;
+
+class MesaController
 {
   public function CargarUno($request, $response, $args)
   {
     $parametros = $request->getParsedBody();
     
     $id_cliente = $parametros['id_cliente'];
-    // Poner un estado por defecto para iniciar
-    $estado = $parametros['estado'];
 
-    $mesa = new Mesa();
-    $mesa->codigo = GenerateRandomToken::getToken(5);
-    $mesa->id_cliente = $id_cliente;
-    $mesa->estado = $estado;
-    $id_mesa = $mesa->crearMesa();
-
-    $fecha = new DateTime(date("d-m-Y H:i:s"));
-
-    DetalleEstadoMesa::crearDetalleMesa($id_mesa, date_format($fecha, 'Y-m-d H:i:s'), $estado);
+    $id_mesa = Mesa::crearMesa($id_cliente,GenerateRandomToken::getToken(5));
+    
+    DetalleEstadoMesa::crearDetalleMesa($id_mesa , 'Iniciando');
 
     $payload = json_encode(array("mensaje" => "Mesa creada con exito"));
 
@@ -34,7 +29,7 @@ class MesaController extends Mesa implements IApiUsable
 
   public function TraerTodos($request, $response, $args)
   {
-    $lista = Mesa::obtenerTodos();
+    $lista = Mesa::all();
     $payload = json_encode(array("listaMesas" => $lista));
 
     $response->getBody()->write($payload);
@@ -44,11 +39,9 @@ class MesaController extends Mesa implements IApiUsable
 
   public function TraerUno($request, $response, $args)
   {
-    $parametros = $request->getParsedBody();
-    
-    $id_mesa = $parametros['id_mesa'];
+    $id = $args['id'];
 
-    $mesa = Mesa::obtenerMesa($id_mesa);
+    $mesa = Mesa::find($id);
 
     $payload = json_encode($mesa);
 
@@ -64,33 +57,9 @@ class MesaController extends Mesa implements IApiUsable
     $id_mesa = $parametros['id_mesa'];
     $nuevo_estado = $parametros['nuevo_estado'];
 
-    Mesa::modificarMesa($nuevo_estado, $id_mesa);
-
-    $fecha = new DateTime(date("Y-m-d H:i:s"));
-    
-    DetalleEstadoMesa::crearDetalleMesa($id_mesa, date_format($fecha, 'Y-m-d H:i:s'), $nuevo_estado);
+    DetalleEstadoMesa::crearDetalleMesa($id_mesa, $nuevo_estado);
 
     $payload = json_encode(array("mensaje" => "Mesa modificada con exito"));
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-  public function BorrarUno($request, $response, $args)
-  {
-    $parametros = $request->getParsedBody();
-
-    $id_mesa = $parametros['id_mesa'];
-    $nuevo_estado = $parametros['nuevo_estado'];
-
-    Mesa::modificarMesa($nuevo_estado, $id_mesa);
-
-    $fecha = new DateTime(date("Y-m-d H:i:s"));
-    
-    DetalleEstadoMesa::crearDetalleMesa($id_mesa, date_format($fecha, 'Y-m-d H:i:s'), $nuevo_estado);
-
-    $payload = json_encode(array("mensaje" => "Mesa borrada con exito"));
 
     $response->getBody()->write($payload);
     return $response

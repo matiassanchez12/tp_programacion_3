@@ -19,10 +19,10 @@ class AutentificadorJWT
         */
         $payload = array(
         	'iat'=>$ahora,
-            'exp' => $ahora + (60),
+            'exp' => $ahora + (600),
             'aud' => self::Aud(),
             'data' => $datos,
-            'app'=> "API REST CD 2017"
+            'app'=> "TP Programacion 2021"
         );
         return JWT::encode($payload, self::$claveSecreta);
     }

@@ -17,7 +17,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 require __DIR__ . '/../vendor/autoload.php';
 
 require_once './db/AccesoDatos.php';
-require_once './middlewares/Logger.php';
+require_once './middlewares/MWAutentificar.php';
 
 require_once './controllers/ProductoController.php';
 require_once './controllers/ProductoDePedidoController.php';
@@ -57,47 +57,50 @@ $capsule->addConnection([
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
 
-// Routes Usuarios
-$app->group('/usuarios', function (RouteCollectorProxy $group) {
-  $group->get('[/]', \UsuarioController::class . ':TraerTodos');
-  $group->get('/{usuario}', \UsuarioController::class . ':TraerUno');
-  $group->get('/roles/{rol}', \UsuarioController::class . ':TraerUsuariosPorRol');
-  $group->post('[/]', \UsuarioController::class . ':CargarUno');
-  $group->post('/baja', \UsuarioController::class . ':BorrarUno');
-});
 
-// Routes Pedidos
+$app->post('/login', \UsuarioController::class . ':Login');
+
+$app->group('/usuarios', function (RouteCollectorProxy $group) {
+  $group->get('[/]', \UsuarioController::class . ':TraerTodos')->add(\MWAutentificar::class . ':VerificarUsuarioEmpleado');
+  $group->get('/{id}', \UsuarioController::class . ':TraerUno');
+  $group->get('/roles/{rol}', \UsuarioController::class . ':TraerUsuariosPorRol');
+  $group->post('/nuevo', \UsuarioController::class . ':CargarUno');
+  $group->post('/actualizar-usuario', \UsuarioController::class . ':ModificarUno');
+  $group->post('/borrar', \UsuarioController::class . ':BorrarUno');
+})->add(\MWAutentificar::class . ':VerificarTokenExpire');
+
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \PedidoController::class . ':TraerTodos');
-  $group->get('/{codigo}', \PedidoController::class . ':TraerUno');
-  $group->post('/altapedido', \PedidoController::class . ':CargarUno');
-  $group->put('/cambiarestado', \PedidoController::class . ':ModificarUno');
-});
+  $group->get('/{id}', \PedidoController::class . ':TraerUno');
+  $group->post('/nuevo', \PedidoController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarUsuarioMozo');
+  $group->post('/actualizar-estado', \PedidoController::class . ':ModificarUno');
+})->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \ProductoController::class . ':TraerTodos');
   $group->get('/{id}', \ProductoController::class . ':TraerUno');
   $group->get('/tipo/{tipo}', \ProductoController::class . ':TraerProductosPorTipo');
-  $group->post('/altaproducto', \ProductoController::class . ':CargarUno');
-  $group->post('/baja', \ProductoController::class . ':BorrarUno');
+  $group->post('/nuevo', \ProductoController::class . ':CargarUno');
 });
 
-$app->group('/productos_pedidos', function (RouteCollectorProxy $group) {
+$app->group('/productos-pedidos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \ProductoDePedidoController::class . ':TraerTodos');
-  $group->post('/altaproducto', \ProductoDePedidoController::class . ':CargarUno');
-  $group->post('/cambiarestado', \ProductoDePedidoController::class . ':ModificarUno');
-});
-
-$app->group('/registros', function (RouteCollectorProxy $group) {
-  //listar detalles
+  $group->get('/{id}', \ProductoDePedidoController::class . ':TraerUno');
+  $group->get('/empleados/{id}', \ProductoDePedidoController::class . ':TraerPedidosDeEmpleado');
+  $group->post('/nuevo', \ProductoDePedidoController::class . ':CargarUno');
+  $group->post('/actualizar-estado', \ProductoDePedidoController::class . ':ModificarUno');
 });
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
   $group->get('[/]', \MesaController::class . ':TraerTodos');
-  $group->post('/altamesa', \MesaController::class . ':CargarUno');
-  $group->post('/cambiarestado', \MesaController::class . ':ModificarUno');
-  $group->post('/bajamesa', \MesaController::class . ':BorrarUno');
+  $group->get('/{id}', \MesaController::class . ':TraerUno');
+  $group->post('/nuevo', \MesaController::class . ':CargarUno');
+  $group->post('/actualizar-estado', \MesaController::class . ':ModificarUno');
 });
+
+$app->group('/registros', function (RouteCollectorProxy $group) {
+  //listar detalles
+})->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
 $app->get('[/]', function (Request $request, Response $response) {
   

@@ -1,19 +1,31 @@
 <?php 
 
-class DetalleEstadoProducto
-{
-    public static function crearDetalleProducto($id_producto, $fecha_modificacion, $estado)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO detalle_estado_producto (id_producto, fecha_modificacion, estado) VALUES (:id_producto, :fecha_modificacion, :estado)");
-        $consulta->bindValue(':id_producto', $id_producto, PDO::PARAM_INT);
-        $consulta->bindValue(':fecha_modificacion', $fecha_modificacion, PDO::PARAM_STR);
-        $consulta->bindValue(':estado', $estado, PDO::PARAM_STR);
-        $consulta->execute();
+namespace App\Models;
 
-        return $objAccesoDatos->obtenerUltimoId();
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class DetalleEstadoProducto extends Model
+{
+    protected $primaryKey = 'id';
+    protected $table = 'detalle_estado_producto';
+
+    public $incrementing = true;
+    public $timestamps = true;
+
+    const UPDATED_AT = null;
+    const CREATED_AT = 'fecha_creacion';
+
+    protected $fillable = [
+        'id_producto', 'estado'
+    ];
+
+    public static function crearDetalleProducto($id_producto, $estado)
+    {
+        $detalle_producto = new DetalleEstadoProducto();
+        $detalle_producto->id_producto = $id_producto;
+        $detalle_producto->estado = $estado;
+        $detalle_producto->save();
     }
 }
-
-
 ?>

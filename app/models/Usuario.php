@@ -3,22 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Usuario extends Model
 {
-    use SoftDeletes;
-    
     protected $primaryKey = 'id';
     protected $table = 'usuarios';
 
     public $incrementing = true;
     public $timestamps = false;
 
-    const DELETED_AT = 'fecha_baja';
-
     protected $fillable = [
-        'usuario', 'clave', 'tipo', 'rol', 'fecha_baja'
+        'usuario', 'clave', 'rol'
     ];
 
+    public static function crearUsuario($usuario, $clave, $rol)
+    {
+        $Ausuario = new Usuario();
+        $Ausuario->usuario = $usuario;
+        $Ausuario->clave = $clave;
+        $Ausuario->rol = $rol;
+        $Ausuario->save();
+        
+        return $Ausuario->id;
+    }
 }

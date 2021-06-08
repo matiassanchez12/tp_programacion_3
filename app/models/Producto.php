@@ -18,7 +18,17 @@ class Producto extends Model
     const DELETED_AT = 'fecha_baja';
 
     protected $fillable = [
-        'nombre', 'tipo', 'precio', 'fecha_baja'
+        'nombre', 'tipo', 'precio'
     ];
 
+    public static function crearProducto($nombre,$tipo, $precio)
+    {
+        $producto = new Producto();
+        $producto->nombre = $nombre;
+        $producto->tipo = $tipo;
+        $producto->precio = $precio;
+        $producto->save();
+        
+        return $producto->id;
+    }
 }

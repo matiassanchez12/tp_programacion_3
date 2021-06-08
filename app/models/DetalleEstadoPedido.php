@@ -1,19 +1,30 @@
 <?php 
+namespace App\Models;
 
-class DetalleEstadoPedido
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class DetalleEstadoPedido extends Model
 {
-    public static function crearDetallePedido($id_pedido, $fecha_modificacion, $estado)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO detalle_estado_pedido (id_pedido, fecha_modificacion, estado) VALUES (:id_pedido, :fecha_modificacion, :estado)");
-        $consulta->bindValue(':id_pedido', $id_pedido, PDO::PARAM_INT);
-        $consulta->bindValue(':fecha_modificacion', $fecha_modificacion, PDO::PARAM_STR);
-        $consulta->bindValue(':estado', $estado, PDO::PARAM_STR);
-        $consulta->execute();
+    protected $primaryKey = 'id';
+    protected $table = 'detalle_estado_pedido';
 
-        return $objAccesoDatos->obtenerUltimoId();
+    public $incrementing = true;
+    public $timestamps = true;
+
+    const UPDATED_AT = null;
+    const CREATED_AT = 'fecha_creacion';
+
+    protected $fillable = [
+        'id_pedido', 'estado'
+    ];
+
+    public static function crearDetallePedido($id_pedido, $estado)
+    {
+        $detalle_pedido = new DetalleEstadoPedido();
+        $detalle_pedido->id_pedido = $id_pedido;
+        $detalle_pedido->estado = $estado;
+        $detalle_pedido->save();
     }
 }
-
-
 ?>

@@ -4,7 +4,7 @@ require_once './interfaces/IApiUsable.php';
 
 use \App\Models\Producto as Producto;
 
-class ProductoController implements IApiUsable
+class ProductoController
 {
     public function CargarUno($request, $response, $args)
     {
@@ -14,13 +14,7 @@ class ProductoController implements IApiUsable
         $precio = $parametros['precio'];
         $tipo = $parametros['tipo'];
         
-        // Creamos el usuario
-        $producto = new Producto();
-        $producto->precio = $precio;
-        $producto->nombre = $nombre;
-        $producto->tipo = $tipo;
-
-        $producto->save();
+        Producto::crearProducto($nombre, $tipo, $precio);
 
         $payload = json_encode(array("mensaje" => "Producto creado con exito"));
 
@@ -49,48 +43,6 @@ class ProductoController implements IApiUsable
         return $response
           ->withHeader('Content-Type', 'application/json');
     }
-    
-    public function ModificarUno($request, $response, $args)
-    {
-        $parametros = $request->getParsedBody();
-
-        $id = $parametros['id'];
-        $tipo = $parametros['tipo'];
-
-        $producto = Producto::find($id);
-
-        $producto->tipo = $tipo;
-
-        $producto->save();
-
-        $mensaje = "Producto modificado con exito";
-        
-        $payload = json_encode(array("mensaje" => $mensaje));
-
-        $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
-    }
-
-    public function BorrarUno($request, $response, $args)
-    {
-        $parametros = $request->getParsedBody();
-
-        $id = $parametros['id'];
-
-        $producto = Producto::find($id);
-
-        $producto->delete();
-
-        $mensaje = "Producto eliminado con exito";
-
-        $payload = json_encode(array("mensaje" => $mensaje));
-
-        $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
-    }
-
     
     public function TraerProductosPorTipo($request, $response, $args)
     {

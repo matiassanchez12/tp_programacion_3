@@ -1,17 +1,31 @@
-<?php 
+<?php
 
-class DetalleEstadoMesa
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class DetalleEstadoMesa extends Model
 {
-    public static function crearDetalleMesa($id_mesa, $fecha_modificacion, $estado)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO detalle_estado_mesa (id_mesa, fecha_modificacion, estado) VALUES (:id_mesa, :fecha_modificacion, :estado)");
-        $consulta->bindValue(':id_mesa', $id_mesa, PDO::PARAM_INT);
-        $consulta->bindValue(':fecha_modificacion', $fecha_modificacion, PDO::PARAM_STR);
-        $consulta->bindValue(':estado', $estado, PDO::PARAM_STR);
-        $consulta->execute();
+    protected $primaryKey = 'id';
+    protected $table = 'detalle_estado_mesa';
 
-        return $objAccesoDatos->obtenerUltimoId();
+    public $incrementing = true;
+    public $timestamps = true;
+
+    const UPDATED_AT = null;
+    const CREATED_AT = 'fecha_creacion';
+
+    protected $fillable = [
+        'id_mesa', 'estado'
+    ];
+
+    public static function crearDetalleMesa($id_mesa, $estado)
+    {
+        $detalle_mesa = new DetalleEstadoMesa();
+        $detalle_mesa->id_mesa = $id_mesa;
+        $detalle_mesa->estado = $estado;
+        $detalle_mesa->save();
     }
 }
 
