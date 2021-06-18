@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 
 class Mesa extends Model
@@ -13,23 +14,17 @@ class Mesa extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'id_cliente', 'codigo'
+        'estado_actual', 'codigo'
     ];
 
-    public static function crearMesa($id_cliente, $codigo)
+    public static function CambiarEstado($id, $nuevo_estado)
     {
         $mesa = new Mesa();
-
-        $verificar_mesa_vacia = $mesa->where('id_cliente', $id_cliente)->first();
+        $mesa_encontrada = $mesa->find($id);
         
-        if ($verificar_mesa_vacia != null) {
-            return $verificar_mesa_vacia->id;
+        if($mesa_encontrada == null){
+            throw new Exception("No existe una mesa con el ID: ". $id, 1);
         }
-
-        $mesa->id_cliente = $id_cliente;
-        $mesa->codigo = $codigo;
-        $mesa->save();
-
-        return $mesa->id;
+        $mesa_encontrada->update(['estado_actual' => $nuevo_estado]);
     }
 }

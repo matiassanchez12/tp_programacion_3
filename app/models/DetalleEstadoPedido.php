@@ -16,13 +16,14 @@ class DetalleEstadoPedido extends Model
     const CREATED_AT = 'fecha_creacion';
 
     protected $fillable = [
-        'id_pedido', 'estado'
+        'id_pedido', 'id_empleado', 'estado'
     ];
 
-    public static function crearDetallePedido($id_pedido, $estado)
+    public static function crearDetallePedido($id_pedido,$id_empleado, $estado)
     {
         $detalle_pedido = new DetalleEstadoPedido();
         $detalle_pedido->id_pedido = $id_pedido;
+        $detalle_pedido->id_empleado = $id_empleado;
         $detalle_pedido->estado = $estado;
         $detalle_pedido->save();
     }

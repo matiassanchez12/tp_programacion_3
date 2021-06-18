@@ -17,13 +17,14 @@ class DetalleEstadoMesa extends Model
     const CREATED_AT = 'fecha_creacion';
 
     protected $fillable = [
-        'id_mesa', 'estado'
+        'id_mesa', 'id_empleado' ,'estado'
     ];
 
-    public static function crearDetalleMesa($id_mesa, $estado)
+    public static function crearDetalleMesa($id_mesa, $id_empleado, $estado)
     {
         $detalle_mesa = new DetalleEstadoMesa();
         $detalle_mesa->id_mesa = $id_mesa;
+        $detalle_mesa->id_empleado = $id_empleado;
         $detalle_mesa->estado = $estado;
         $detalle_mesa->save();
     }

@@ -2,33 +2,36 @@
 
 namespace App\Models;
 
+use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Producto extends Model
 {
-    use SoftDeletes;
-    
     protected $primaryKey = 'id';
     protected $table = 'productos';
 
     public $incrementing = true;
     public $timestamps = false;
 
-    const DELETED_AT = 'fecha_baja';
-
     protected $fillable = [
-        'nombre', 'tipo', 'precio'
+        'nombre', 'tipo', 'precio', 'area_preparacion'
     ];
 
-    public static function crearProducto($nombre,$tipo, $precio)
+    public static function crearProducto($nombre, $tipo, $precio, $area_preparacion)
     {
         $producto = new Producto();
         $producto->nombre = $nombre;
         $producto->tipo = $tipo;
         $producto->precio = $precio;
+        $producto->area_preparacion = $area_preparacion;
         $producto->save();
         
         return $producto->id;
+    }
+
+    public static function buscarProducto($id_producto)
+    {
+        $producto = new Producto();
+        return $producto->find($id_producto);
     }
 }
