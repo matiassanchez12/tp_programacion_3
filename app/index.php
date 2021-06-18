@@ -31,7 +31,7 @@ $dotenv->safeLoad();
 // Instantiate App
 $app = AppFactory::create();
 
-$app->setBasePath("/laComanda");
+//$app->setBasePath("/laComanda");
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
 
