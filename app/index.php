@@ -31,12 +31,13 @@ $dotenv->safeLoad();
 // Instantiate App
 $app = AppFactory::create();
 
+$app->addErrorMiddleware(true, true, true);
 //$app->setBasePath("/app");
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
 
 // Add error middleware
-$app->addErrorMiddleware(true, true, true);
+
 
 // Eloquent
 $container=$app->getContainer();
