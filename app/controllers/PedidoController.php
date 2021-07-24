@@ -35,18 +35,11 @@ class PedidoController
       $id_empleado = Usuario::buscarEmpleadoPorRol($producto->area_preparacion);
       $empleado_encargado = Usuario::find($id_empleado);
 
-      $id_pedido = Pedido::crearPedido($id_mesa, $id_cliente, $id_mozo, $id_empleado, $id_producto, $codigo_pedido); //Creo el pedido
+      $id_pedido = Pedido::crearPedido($id_mesa, $id_cliente, $id_mozo, $id_empleado, $id_producto, $codigo_pedido, $_FILES['foto']); //Creo el pedido
 
       DetalleEstadoPedido::crearDetallePedido($id_pedido, $id_mozo, 'Pendiente'); //Creo el registro del pedido
 
       RegistroDeAcciones::crearRegistro($id_mozo, 'Alta de pedido'); //Creo el registro del usuario
-
-      if(isset($_FILES['foto'])){
-        
-        $foto = $_FILES['foto'];
-
-        Pedido::GuardarImagen($foto, $codigo_pedido);
-      }
 
       $payload = json_encode(array("mensaje" => "Pedido encargado con exito", "Empleado del pedido" => "$empleado_encargado->nombre(ID: $empleado_encargado->id)"));
     } catch (Exception $e) {
@@ -131,13 +124,9 @@ class PedidoController
 
   public function TraerRegistroPedidos($request, $response, $args)
   {
-    // $jwtHeader = $request->getHeaderLine('Authorization');
-
     $lista = DetalleEstadoPedido::all();
 
     $payload = json_encode(array("listaEstadosDePedidos" => $lista));
-
-    // RegistroDeAcciones::crearRegistro(MesaController::obtenerIdUsuario($jwtHeader), 'Listado de registros de pedidos');
 
     $response->getBody()->write($payload);
     return $response

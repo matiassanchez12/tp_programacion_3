@@ -17,13 +17,16 @@ class Pedido extends Model
     protected $table = 'pedidos';
 
     public $incrementing = true;
-    public $timestamps = false;
+    public $timestamps = true;
+
+    const UPDATED_AT = null;
+    const CREATED_AT = 'fecha_creacion';
 
     protected $fillable = [
         'id_mesa', 'id_cliente', 'id_empleado', 'id_producto', 'id_mozo', 'tiempo_estimado', 'codigo'
     ];
 
-    public static function crearPedido($id_mesa, $id_cliente, $id_mozo, $id_empleado, $id_producto, $codigo, $tiempo_estimado = null)
+    public static function crearPedido($id_mesa, $id_cliente, $id_mozo, $id_empleado, $id_producto, $codigo, $imagen, $tiempo_estimado = null)
     {
         $pedido = new Pedido();
         $pedido->id_mesa = $id_mesa;
@@ -34,6 +37,11 @@ class Pedido extends Model
         $pedido->tiempo_estimado = $tiempo_estimado;
         $pedido->codigo = $codigo;
         $pedido->save();
+
+        if (isset($imagen)) {
+
+            Pedido::GuardarImagen($imagen, $codigo);
+        }
 
         Mesa::CambiarEstado($id_mesa, $id_mozo, 'con cliente esperando'); //Cambio el estado de la mesa
 

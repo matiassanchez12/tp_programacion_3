@@ -79,17 +79,17 @@ class Mesa extends Model
     {
         return Mesa::select('mesas.id', Producto::raw('SUM(productos.precio) as total'))
 
-        ->join('pedidos', 'pedidos.id_mesa', '=', 'mesas.id')
+            ->join('pedidos', 'pedidos.id_mesa', '=', 'mesas.id')
 
-        ->join('productos', 'productos.id', '=', 'pedidos.id_producto')
+            ->join('productos', 'productos.id', '=', 'pedidos.id_producto')
 
-        ->groupBy('pedidos.id_mesa')
+            ->groupBy('pedidos.id_mesa')
 
-        ->orderBy('total', 'DESC')
+            ->orderBy('total', 'DESC')
 
-        ->take(1)
+            ->take(1)
 
-        ->get();
+            ->get();
     }
 
     public static function MenosFacturo()
@@ -135,7 +135,45 @@ class Mesa extends Model
 
     public static function MenorImporte()
     {
-        # code...
+        $menor =  Mesa::select('pedidos.codigo as codigo', Mesa::raw('SUM(productos.precio) as total'))
+
+            ->join('pedidos', 'pedidos.id_mesa', '=', 'mesas.id')
+
+            ->join('productos', 'productos.id', '=', 'pedidos.id_producto')
+
+            ->groupBy('pedidos.codigo')
+
+            ->orderBy('total', 'ASC')
+
+            ->take(1)
+
+            ->get()
+
+            ->toArray();
+
+        return [
+            'id mesa:' => Pedido::where('codigo', $menor[0]['codigo'])->first()->id_mesa,
+            'total importe factura: $' => $menor[0]['total']
+        ];
+    }
+
+    public static function ImporteEntreDosFechas($desde, $hasta)
+    {
+        return Mesa::select(Mesa::raw('SUM(productos.precio) as total'))
+
+            ->join('pedidos', 'pedidos.id_mesa', '=', 'mesas.id')
+
+            ->join('productos', 'productos.id', '=', 'pedidos.id_producto')
+
+            ->groupBy('pedidos.codigo')
+
+            ->orderBy('total', 'ASC')
+
+            ->take(1)
+
+            ->get()
+
+            ->toArray();
     }
 
     public static function MesaMejoresComentarios()

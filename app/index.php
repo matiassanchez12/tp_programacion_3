@@ -33,7 +33,7 @@ $dotenv->safeLoad();
 $app = AppFactory::create();
 
 $app->addErrorMiddleware(true, true, true);
-//$app->setBasePath("/app");
+$app->setBasePath("/laComanda");
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
 

@@ -1,6 +1,1 @@
 php -S localhost:666 -t app
-
-Tiempo de preparacion del producto, lo pone el empleado cuando toma el pedido y cambia el estado
-Tiempo de espera del pedido, se pone automaticamente cuando sus productos tienen un tiempo definido con un UPDATE
-Login de clientes
-El pedido es el producto que el cliente pide
