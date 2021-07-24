@@ -25,17 +25,47 @@ class MWPermisos
             if ($user->id != $pedido->id_empleado || $pedido == null) {
                 throw new Exception("A este usuario no le corresponde el pedido ingresado.");
             }
-            
+
             $response = $handler->handle($request);
-            
+
             return $response;
         } catch (Exception $e) {
 
             $response = new Response();
 
-            $response->getBody()->write('Error: ' . $e->getMessage());
+            $payload = json_encode(array('Error: ' => $e->getMessage()));
+
+            $response->getBody()->write($payload);
+
+            return $response
+            ->withHeader('Content-Type', 'application/json');;
+        }
+    }
+
+    public static function VerificarSoloSocios(Request $request, RequestHandler $handler)
+    {
+        $jwtHeader = $request->getHeaderLine('Authorization');
+
+        try {
+            $user = AutentificadorJWT::ObtenerData($jwtHeader);
+
+            if ($user->rol !== 'Socio') {
+                throw new Exception("Este usuario no puede acceder al contenido.");
+            }
+
+            $response = $handler->handle($request);
 
             return $response;
+        } catch (Exception $e) {
+
+            $response = new Response();
+         
+            $payload = json_encode(array('Error: ' => $e->getMessage()));
+
+            $response->getBody()->write($payload);
+
+            return $response
+            ->withHeader('Content-Type', 'application/json');;
         }
     }
 
@@ -52,16 +82,17 @@ class MWPermisos
 
             $response = $handler->handle($request);
 
-            // $response->getBody()->write($name);
-
             return $response;
         } catch (Exception $e) {
 
             $response = new Response();
 
-            $response->getBody()->write('Error: ' . $e->getMessage());
+            $payload = json_encode(array('Error: ' => $e->getMessage()));
 
-            return $response;
+            $response->getBody()->write($payload);
+
+            return $response
+            ->withHeader('Content-Type', 'application/json');;
         }
     }
 
@@ -75,11 +106,11 @@ class MWPermisos
         try {
             $user = AutentificadorJWT::ObtenerData($jwtHeader);
 
-            if($nuevo_estado !== 'cerrada' && $user->rol !== 'Mozo'){
+            if ($nuevo_estado !== 'cerrada' && $user->rol !== 'Mozo') {
                 throw new Exception("Este usuario no puede cambiar el estado de las mesas.");
             }
 
-            if ($nuevo_estado === 'cerrada' && $user->rol !== 'Socio' ) {
+            if ($nuevo_estado === 'cerrada' && $user->rol !== 'Socio') {
                 throw new Exception("Este usuario no puede cerrar la mesa.");
             }
 
@@ -90,9 +121,12 @@ class MWPermisos
 
             $response = new Response();
 
-            $response->getBody()->write('Error: ' . $e->getMessage());
+            $payload = json_encode(array('Error: ' => $e->getMessage()));
 
-            return $response;
+            $response->getBody()->write($payload);
+
+            return $response
+            ->withHeader('Content-Type', 'application/json');;
         }
     }
 }

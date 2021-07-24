@@ -1,6 +1,7 @@
 <?php
 require_once './models/Usuario.php';
 require_once './models/Producto.php';
+
 require_once './models/RegistroDeAcciones.php';
 require_once './models/DetalleEstadoUsuario.php';
 require_once './interfaces/IApiUsable.php';
@@ -8,10 +9,11 @@ require_once './middlewares/AutenticadorJWT.php';
 
 use \App\Models\Usuario as Usuario;
 use \App\Models\Producto as Producto;
+
 use \App\Models\DetalleEstadoUsuario as DetalleEstadoUsuario;
 use \App\Models\RegistroDeAcciones as RegistroDeAcciones;
 
-class UsuarioController implements IApiUsable
+class UsuarioController
 {
   public function CargarUno($request, $response, $args)
   {
@@ -22,8 +24,12 @@ class UsuarioController implements IApiUsable
     $usuario = $parametros['usuario'];
     $clave = $parametros['clave'];
     $rol = $parametros['rol'];
+    $sector = $parametros['sector'];
 
-    Usuario::crearUsuario($usuario, password_hash($clave, PASSWORD_DEFAULT), $rol);
+    $id_usuario = Usuario::crearUsuario($usuario, password_hash($clave, PASSWORD_DEFAULT), $rol, $sector);
+
+    DetalleEstadoUsuario::crearDetalleUsuario($id_usuario, UsuarioController::obtenerIdUsuario($jwtHeader), 'Alta');
+
     RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Alta de usuario');
 
     $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
@@ -40,25 +46,7 @@ class UsuarioController implements IApiUsable
     $id = $args['id'];
     $usuario = Usuario::where('id', $id)->first();
 
-    RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Listado de un usuario');
-
     $payload = json_encode($usuario);
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-  public function TraerUsuariosPorRol($request, $response, $args)
-  {
-    $jwtHeader = $request->getHeaderLine('Authorization');
-
-    $rol = $args['rol'];
-    $usuarios = Usuario::where('rol', $rol)->get();
-
-    RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Listado de usuarios por rol');
-
-    $payload = json_encode(array("lista usuarios con rol '$rol'", $usuarios));
 
     $response->getBody()->write($payload);
     return $response
@@ -89,66 +77,38 @@ class UsuarioController implements IApiUsable
     $id_usuario = $parametros['id_usuario'];
     $nuevo_estado = $parametros['nuevo_estado'];
 
-    DetalleEstadoUsuario::crearDetalleUsuario($id_usuario, UsuarioController::obtenerIdUsuario($jwtHeader), $nuevo_estado);
-    RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Cambio de estado del usuario con ID: '.$id_usuario);
+    try {
+      switch ($nuevo_estado) {
+        case 'Suspender':
+          Usuario::find($id_usuario)->delete();
+          break;
+        case 'Alta':
+          Usuario::withTrashed()->find($id_usuario)->restore();
+          break;
+        case 'Eliminar':
+          Usuario::find($id_usuario)->delete();
+          break;
+        default:
+          throw new Exception("Ingresar estados: Suspender, Alta, Eliminar");
+          break;
+      }
 
-    $payload = json_encode(array("mensaje" => "Usuario modificado con exito"));
+      DetalleEstadoUsuario::crearDetalleUsuario($id_usuario, UsuarioController::obtenerIdUsuario($jwtHeader), $nuevo_estado);
 
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
+      RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Cambio de estado del usuario con ID: ' . $id_usuario);
 
-  public function BorrarUno($request, $response, $args)
-  {
-    $jwtHeader = $request->getHeaderLine('Authorization');
-
-    $parametros = $request->getParsedBody();
-    
-    $id = $parametros['id'];
-
-    $usuario = Usuario::find($id);
-
-    $usuario->delete();
-    RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Borrado de un usuario con ID: ' . $id);
-
-    $payload = json_encode(array("mensaje" => "Empleado borrado con exito"));
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-  public function PedidosPendientes($request, $response, $args)
-  {
-    $jwtHeader = $request->getHeaderLine('Authorization');
-
-    $parametros = $request->getParsedBody();
-
-    $id = $args['id'];
-
-    $producto = Producto::traerPedidosPendientes($id);
-
-    $payload = json_encode(array("mensaje" => "El empleado no tiene pedidos pendientes"));
-
-    if($producto != null){
-      
-      RegistroDeAcciones::crearRegistro(UsuarioController::obtenerIdUsuario($jwtHeader), 'Borrado de un usuario con ID: ' . $id);
-
-      $payload = json_encode(array("mensaje" => "Cambio de estado de pedido pendiente"));
+      $payload = json_encode(array("mensaje" => "Usuario modificado con exito"));
+    } catch (Exception $th) {
+      $payload = json_encode(array("mensaje error" => $th->getMessage()));
     }
 
-
     $response->getBody()->write($payload);
     return $response
       ->withHeader('Content-Type', 'application/json');
   }
-
 
   public function Login($request, $response, $args)
   {
-    $jwtHeader = $request->getHeaderLine('Authorization');
-
     $parametros = $request->getParsedBody();
     $usuario =  $parametros['usuario'];
     $clave =  $parametros['clave'];
@@ -165,7 +125,7 @@ class UsuarioController implements IApiUsable
           'Estado' => 'Logueado.'
         ];
 
-        RegistroDeAcciones::crearRegistro($datos_usuario->id, 'Inicio de sesion del usuario: ' . $usuario);
+        RegistroDeAcciones::crearRegistro($datos_usuario->id, 'Inicio de sesion del usuario');
       } else {
         $message = [
           'Autorizacion' => 'Denegate',
@@ -186,5 +146,61 @@ class UsuarioController implements IApiUsable
     $data_usuario = AutentificadorJWT::ObtenerData($jwtHeader);
 
     return $data_usuario->id;
+  }
+
+  public function Ingresos($request, $response, $args)
+  {
+    $lista = Usuario::ingresosUsuarios();
+
+    $payload = json_encode(array("Ingreso de usuarios" => $lista));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+  public function Logueos($request, $response, $args)
+  {
+    $lista = Usuario::logueoUsuarios();
+
+    $payload = json_encode(array("Logueo de usuarios" => $lista));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+  public function CantidadOperaciones($request, $response, $args)
+  {
+    $lista = Usuario::cantidadOperacionesPorUsuario();
+
+    $payload = json_encode(array("Operaciones de usuarios" => $lista));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+  public function OperacionesPorSector($request, $response, $args)
+  {
+    $lista = Usuario::operacionesPorSector();
+
+    $payload = json_encode(array("Operaciones Por Sector" => $lista));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+
+  public function OperacionesPorEmpleado($request, $response, $args)
+  {
+    $lista = Usuario::operacionesPorEmpleado();
+
+    $payload = json_encode(array("Operaciones Por Empleado" => $lista));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
   }
 }

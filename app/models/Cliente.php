@@ -34,4 +34,6 @@ class Cliente extends Model
 
         return $cliente->id;
     }
+
+   
 }

@@ -20,6 +20,7 @@ require_once './middlewares/MWAutentificar.php';
 require_once './middlewares/MWPermisos.php';
 
 require_once './controllers/ProductoController.php';
+require_once './controllers/ClienteController.php';
 require_once './controllers/UsuarioController.php';
 require_once './controllers/PedidoController.php';
 require_once './controllers/MesaController.php';
@@ -57,14 +58,14 @@ $capsule->setAsGlobal();
 $capsule->bootEloquent();
 
 $app->post('/login', \UsuarioController::class . ':Login');
+$app->post('/clientes', \ClienteController::class . ':LoginCliente');
+$app->post('/encuesta', \ClienteController::class . ':EncuestaCliente');
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
   $group->get('[/]', \UsuarioController::class . ':TraerTodos');
   $group->get('/{id}', \UsuarioController::class . ':TraerUno');
-  $group->get('/roles/{rol}', \UsuarioController::class . ':TraerUsuariosPorRol');
   $group->post('/nuevo', \UsuarioController::class . ':CargarUno');
   $group->post('/actualizar-usuario', \UsuarioController::class . ':ModificarUno');
-  $group->post('/{id}/pedidos-pendientes', \UsuarioController::class . ':PedidosPendientes');
   $group->post('/borrar', \UsuarioController::class . ':BorrarUno');
 })->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
@@ -73,7 +74,8 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('/{id}', \PedidoController::class . ':TraerUno');
   $group->post('/nuevo', \PedidoController::class . ':CargarUno')->add(\MWPermisos::class . ':VerificarUsuarioMozo');
   $group->post('/actualizar-estado', \PedidoController::class . ':ModificarUno')->add(\MWPermisos::class . ':VerificarEmpleadoDePedido');
-})->add(\MWAutentificar::class . ':VerificarTokenExpire');
+  $group->get('/estados/visualizar', \PedidoController::class . ':TraerEstados')->add(\MWPermisos::class . ':VerificarSoloSocios');
+});
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \ProductoController::class . ':TraerTodos');
@@ -88,17 +90,32 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
   $group->post('/nuevo', \MesaController::class . ':CargarUno');
   $group->get('/archivos/guardar-csv', \MesaController::class . ':GuardarMesasEnCSV');
   $group->get('/archivos/leer-csv', \MesaController::class . ':LeerMesasEnCSV');
+  $group->get('/archivos/descargar-pdf', \MesaController::class . ':GenerarPdf');
   $group->post('/actualizar-estado', \MesaController::class . ':ModificarUno')->add(\MWPermisos::class . ':VerificarCambioEstadoMesa');
-})->add(\MWAutentificar::class . ':VerificarTokenExpire');
+});
 
 $app->group('/registros', function (RouteCollectorProxy $group) {
   $group->get('/mesas', \MesaController::class . ':TraerRegistroMesas');
+  $group->get('/pedidos', \PedidoController::class . ':TraerRegistroPedidos');
+});
 
-})->add(\MWAutentificar::class . ':VerificarTokenExpire');
+$app->group('/consultas', function (RouteCollectorProxy $group) {
+  $group->post('/mesas', \MesaController::class . ':EstadisticaMesas');
+  $group->get('/usuarios/alta-usuarios', \UsuarioController::class . ':Ingresos');
+  $group->get('/usuarios/logueo-usuarios', \UsuarioController::class . ':Logueos');
+  $group->get('/usuarios/operaciones-usuarios', \UsuarioController::class . ':CantidadOperaciones');
+  $group->get('/usuarios/operaciones-sectores', \UsuarioController::class . ':OperacionesPorSector');
+  $group->get('/usuarios/operaciones-empleados', \UsuarioController::class . ':OperacionesPorEmpleado');
+  $group->get('/mesas/mas-usada', \MesaController::class . ':MesaMasUsada');
+  $group->get('/mesas/menos-usada', \MesaController::class . ':MesaMenosUsada');
+  $group->get('/mesas/mejores-comentarios', \MesaController::class . ':MesaMejoresComentarios');
+  $group->get('/mesas/peores-comentarios', \MesaController::class . ':MesaPeoresComentarios');
+});
 
 $app->get('[/]', function (Request $request, Response $response) {
   
   $response->getBody()->write("Slim Framework 4 PHP");
+
   return $response;
 });
 

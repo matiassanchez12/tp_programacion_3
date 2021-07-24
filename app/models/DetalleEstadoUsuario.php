@@ -17,14 +17,14 @@ class DetalleEstadoUsuario extends Model
     const CREATED_AT = 'fecha_creacion';
 
     protected $fillable = [
-        'id_usuario', 'id_empleado', 'estado'
+        'id_usuario', 'id_encargado', 'estado'
     ];
 
-    public static function crearDetalleUsuario($id_usuario, $id_empleado, $estado)
+    public static function crearDetalleUsuario($id_usuario, $id_encargado, $estado)
     {
         $detalle_usuario = new DetalleEstadoUsuario();
         $detalle_usuario->id_usuario = $id_usuario;
-        $detalle_usuario->id_empleado = $id_empleado;
+        $detalle_usuario->id_encargado = $id_encargado;
         $detalle_usuario->estado = $estado;
         $detalle_usuario->save();
     }
