@@ -5,7 +5,7 @@ class Archivos
     //Retorno un array vacio o con datos
     public static function CargarTxt($file_name)
     {
-        $ret = [];
+        $datos = [];
 
         if (file_exists($file_name) && filesize($file_name) > 0) {
 
@@ -13,9 +13,22 @@ class Archivos
 
             $data = fread($file, filesize($file_name));
 
-            $ret = explode("\n", $data);
+            $datos = explode("\n", $data);
 
             fclose($file);
+        }
+
+        $ret = [];
+
+        foreach ($datos as $mesa) {
+            $atributos = explode(",", $mesa);
+
+            $auxMesa = new stdClass();
+            $auxMesa->id = $atributos[0];
+            $auxMesa->estado_actual = $atributos[1];
+            $auxMesa->codigo = $atributos[2];
+
+            array_push($ret, $auxMesa);
         }
 
         return $ret;
@@ -32,8 +45,7 @@ class Archivos
             $ret = fwrite($file, $datostxt);
 
             fclose($file);
-        } 
-        else { //Ya existe, utilizo la "a" para escribir al final
+        } else { //Ya existe, utilizo la "a" para escribir al final
 
             $file = fopen($file_name, "a");
 

@@ -41,8 +41,6 @@ class UsuarioController
 
   public function TraerUno($request, $response, $args)
   {
-    $jwtHeader = $request->getHeaderLine('Authorization');
-
     $id = $args['id'];
     $usuario = Usuario::where('id', $id)->first();
 
@@ -159,45 +157,32 @@ class UsuarioController
       ->withHeader('Content-Type', 'application/json');
   }
 
-  public function Logueos($request, $response, $args)
+  public function EstadisticasUsuarios($request, $response, $args)
   {
-    $lista = Usuario::logueoUsuarios();
+    $parametros = $request->getParsedBody();
 
-    $payload = json_encode(array("Logueo de usuarios" => $lista));
+    //le paso la consigna por la cual va a devolver una estadistica
+    $consigna = $parametros['consigna'];
 
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
+    switch ($consigna) {
+      case 'logueoUsuarios':
+        $lista = Usuario::logueoUsuarios();
+        break;
+      case 'cantidadOperacionesPorUsuario':
+        $lista = Usuario::cantidadOperacionesPorUsuario();
+        break;
+      case 'OperacionesPorSector':
+        $lista = Usuario::OperacionesPorSector();
+        break;
+      case 'operacionesPorEmpleado':
+        $lista = Usuario::operacionesPorEmpleado();
+        break;
+      default:
+        $lista = "Error, ingresar valor valido";
+        break;
+    }
 
-  public function CantidadOperaciones($request, $response, $args)
-  {
-    $lista = Usuario::cantidadOperacionesPorUsuario();
-
-    $payload = json_encode(array("Operaciones de usuarios" => $lista));
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-  public function OperacionesPorSector($request, $response, $args)
-  {
-    $lista = Usuario::operacionesPorSector();
-
-    $payload = json_encode(array("Operaciones Por Sector" => $lista));
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-
-  public function OperacionesPorEmpleado($request, $response, $args)
-  {
-    $lista = Usuario::operacionesPorEmpleado();
-
-    $payload = json_encode(array("Operaciones Por Empleado" => $lista));
+    $payload = json_encode(array("Estadisticas" => $lista));
 
     $response->getBody()->write($payload);
     return $response

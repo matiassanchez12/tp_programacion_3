@@ -28,20 +28,28 @@ class PedidoController
     $codigo_pedido = $parametros['codigo_pedido'];
 
     try {
-      $id_mozo = PedidoController::obtenerIdUsuario($jwtHeader); //Busco el mozo
-      $id_cliente = Cliente::crearCliente($nombre_cliente); //Creo un Cliente
-      $id_mesa = Mesa::BuscarMesaPorCodigo($codigo_mesa);
-      $producto = Producto::buscarProducto($id_producto);
-      $id_empleado = Usuario::buscarEmpleadoPorRol($producto->area_preparacion);
-      $empleado_encargado = Usuario::find($id_empleado);
+      $id_empleado = Usuario::buscarEmpleadoPorRol(Producto::buscarProducto($id_producto)->area_preparacion);
 
-      $id_pedido = Pedido::crearPedido($id_mesa, $id_cliente, $id_mozo, $id_empleado, $id_producto, $codigo_pedido, $_FILES['foto']); //Creo el pedido
+      $id_pedido = Pedido::crearPedido(
+        Mesa::BuscarMesaPorCodigo($codigo_mesa),
+        Cliente::crearCliente($nombre_cliente),
+        PedidoController::obtenerIdUsuario($jwtHeader),
+        $id_empleado,
+        $id_producto,
+        $codigo_pedido,
+        $_FILES['foto']
+      ); //Creo el pedido
 
-      DetalleEstadoPedido::crearDetallePedido($id_pedido, $id_mozo, 'Pendiente'); //Creo el registro del pedido
+      DetalleEstadoPedido::crearDetallePedido($id_pedido,  PedidoController::obtenerIdUsuario($jwtHeader), 'Pendiente'); //Creo el registro del pedido
 
-      RegistroDeAcciones::crearRegistro($id_mozo, 'Alta de pedido'); //Creo el registro del usuario
+      RegistroDeAcciones::crearRegistro(PedidoController::obtenerIdUsuario($jwtHeader), 'Alta de pedido'); //Creo el registro del usuario
 
-      $payload = json_encode(array("mensaje" => "Pedido encargado con exito", "Empleado del pedido" => "$empleado_encargado->nombre(ID: $empleado_encargado->id)"));
+      $payload = json_encode(
+        [
+          "mensaje" => "Pedido encargado con exito",
+          "Empleado del pedido" =>  Usuario::find($id_empleado)->usuario . "(ID:" . $id_empleado . ")"
+        ]
+      );
     } catch (Exception $e) {
 
       $payload = json_encode(array("mensaje Error" => $e->getMessage()));
@@ -71,7 +79,7 @@ class PedidoController
           break;
         case 'listo para servir':
           Mesa::CambiarEstado(Pedido::find($id_pedido)->id_mesa, Pedido::find($id_pedido)->id_mozo, "con cliente comiendo");
-          
+
           Usuario::actualizarDisponible($this->obtenerIdUsuario($jwtHeader));
           break;
         case 'cancelado':
@@ -91,13 +99,11 @@ class PedidoController
       ->withHeader('Content-Type', 'application/json');
   }
 
-
   public function TraerUno($request, $response, $args)
   {
     $jwtHeader = $request->getHeaderLine('Authorization');
     $id = $args['id'];
     $pedido = Pedido::find($id);
-
 
     RegistroDeAcciones::crearRegistro(PedidoController::obtenerIdUsuario($jwtHeader), 'Listar un pedido');
 
@@ -142,15 +148,6 @@ class PedidoController
     return false;
   }
 
-  public static function ConvertIntToDate($minutes)
-  {
-    $fecha = new DateTime();
-
-    $fecha->modify("+$minutes minutes");
-
-    return $fecha->format('Y-m-d H:i:s');
-  }
-
   public static function obtenerIdUsuario($jwtHeader)
   {
     $data_usuario = AutentificadorJWT::ObtenerData($jwtHeader);
@@ -158,44 +155,33 @@ class PedidoController
     return $data_usuario->id;
   }
 
-  public function ProductosMasVendidos($request, $response, $args)
+  public function EstadisticasPedidos($request, $response, $args)
   {
-    $pedidos = Pedido::LoMasPedido();
+    $parametros = $request->getParsedBody();
 
-    $payload = json_encode(array("3 Productos Mas vendidos" => $pedidos));
+    $consigna = $parametros['consigna'];
+    $desde = $parametros['desde'];
+    $hasta = $parametros['hasta'];
 
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
+    switch ($consigna) {
+      case 'LoMasPedido':
+        $pedidos = ["3 Productos Mas vendidos" => Pedido::LoMasPedido($desde, $hasta)];
+        break;
+      case 'LoMenosPedido':
+        $pedidos = ["3 Productos Menos vendidos" => Pedido::LoMenosPedido($desde, $hasta)];
+        break;
+      case 'PedidosFueraDeTiempo':
+        $pedidos = ["3 pedidos entregados con demora" => Pedido::PedidosFueraDeTiempo($desde, $hasta)];
+        break;
+      case 'PedidosCancelados':
+        $pedidos = ["3  pedidos mas cancelados" => Pedido::PedidosCancelados($desde, $hasta)];
+        break;
+      default:
+        $pedidos = ["Consigna invalida"];
+        break;
+    }
 
-  public function ProductosMenosVendidos($request, $response, $args)
-  {
-    $pedidos = Pedido::LoMenosPedido();
-
-    $payload = json_encode(array("3 Productos Menos vendidos" => $pedidos));
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-  public function FueraDeTiempo($request, $response, $args)
-  {
-    $pedidos = Pedido::PedidosFueraDeTiempo();
-
-    $payload = json_encode(array("3 pedidos que mas veces fueron entregados con demora" => $pedidos));
-
-    $response->getBody()->write($payload);
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
-
-  public function Cancelados($request, $response, $args)
-  {
-    $pedidos = Pedido::PedidosCancelados();
-
-    $payload = json_encode(array("3 pedidos mas cancelados" =>  $pedidos));
+    $payload = json_encode(array("Estadistica" => $pedidos));
 
     $response->getBody()->write($payload);
     return $response
@@ -204,12 +190,21 @@ class PedidoController
 
   public function TraerEstados($request, $response, $args)
   {
-    $estados = Pedido::BuscarEstadosDePedidos();
+    $estados = Pedido::TraerEstadosDePedidos();
 
     $payload = json_encode(array("Estado de los pedidos" =>  $estados));
 
     $response->getBody()->write($payload);
     return $response
       ->withHeader('Content-Type', 'application/json');
+  }
+
+  public static function ConvertIntToDate($minutes)
+  {
+    $fecha = new DateTime();
+
+    $fecha->modify("+$minutes minutes");
+
+    return $fecha->format('Y-m-d H:i:s');
   }
 }

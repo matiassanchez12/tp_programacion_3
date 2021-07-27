@@ -29,6 +29,23 @@ class Mesa extends Model
         DetalleEstadoMesa::crearDetalleMesa($mesa_encontrada->id, $id_empleado, $nuevo_estado);
         $mesa_encontrada->update(['estado_actual' => $nuevo_estado]);
     }
+    
+    public static function buscarEstadoMesa($codigo_mesa)
+    {
+        $ret = Mesa::select('mesas.estado_actual')
+
+        ->where('mesas.codigo', '=', $codigo_mesa)
+
+        ->take(1)
+
+        ->get();
+
+        if(!isset($ret[0]->estado_actual)){
+            throw new Exception("Error codigo invalido", 1);
+        }
+
+        return $ret;
+    }
 
     public static function BuscarMesaPorCodigo($codigo, $verificacionDoble = true)
     {
@@ -159,17 +176,17 @@ class Mesa extends Model
 
     public static function ImporteEntreDosFechas($desde, $hasta)
     {
-        return Mesa::select(Mesa::raw('SUM(productos.precio) as total'))
+        return Mesa::select('mesas.id as id_mesa', Mesa::raw('SUM(productos.precio) as importe_total'))
 
             ->join('pedidos', 'pedidos.id_mesa', '=', 'mesas.id')
 
             ->join('productos', 'productos.id', '=', 'pedidos.id_producto')
 
-            ->groupBy('pedidos.codigo')
+            ->whereBetween('pedidos.fecha_creacion', [$desde, $hasta])
 
-            ->orderBy('total', 'ASC')
+            ->groupBy('mesas.id')
 
-            ->take(1)
+            ->orderBy('importe_total', 'DESC')
 
             ->get()
 
@@ -190,7 +207,6 @@ class Mesa extends Model
 
             ->get();
     }
-
 
     public static function MesaPeoresComentarios()
     {

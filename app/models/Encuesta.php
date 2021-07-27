@@ -13,13 +13,12 @@ class Encuesta extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'codigo_pedido', 'codigo_mesa', 'punt_mesa', 'punt_restaurante', 'punt_mozo', 'punt_cocinero', 'comentarios'
+        'codigo_mesa', 'punt_mesa', 'punt_restaurante', 'punt_mozo', 'punt_cocinero', 'comentarios'
     ];
 
-    public static function crearEncuesta($codigo_pedido, $codigo_mesa, $punt_mesa, $punt_restaurante, $punt_mozo, $punt_cocinero, $comentarios)
+    public static function crearEncuesta($codigo_mesa, $punt_mesa, $punt_restaurante, $punt_mozo, $punt_cocinero, $comentarios)
     {
         $encuesta = new Encuesta([
-            'codigo_pedido' => $codigo_pedido,
             'codigo_mesa' => $codigo_mesa,
             'punt_mesa' => $punt_mesa,
             'punt_restaurante' => $punt_restaurante, 

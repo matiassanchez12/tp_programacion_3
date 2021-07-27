@@ -18,14 +18,20 @@ class ClienteController
         $parametros = $request->getParsedBody();
 
         $codigo_mesa =  $parametros['codigo_mesa'];
-        $codigo_pedido =  $parametros['codigo_pedido'];
 
         try {
+            $estado = Mesa::buscarEstadoMesa($codigo_mesa);
+            
+            if ($estado[0]->estado_actual == 'con cliente pagando') {
 
-            $message = [
-                'Tiempo restante de su pedido' => Pedido::BuscarTiempo($codigo_pedido)
-            ];
+                $message = ClienteController::EncuestaCliente($codigo_mesa, $parametros['puntaje_mesa'], $parametros['puntaje_restaurante'], $parametros['puntaje_mozo'], $parametros['puntaje_cocinero'], $parametros['comentarios']);
+            } else {
+                $codigo_pedido =  $parametros['codigo_pedido'];
 
+                $message = [
+                    'Tiempo restante de su pedido' => Pedido::BuscarTiempo($codigo_pedido)
+                ];
+            }
         } catch (Exception $e) {
 
             $message = [
@@ -50,20 +56,9 @@ class ClienteController
             ->withHeader('Content-Type', 'application/json');
     }
 
-    public function EncuestaCliente($request, $response, $args)
+
+    public static function EncuestaCliente($codigo_mesa, $punt_mesa, $punt_restaurante, $punt_mozo, $punt_cocinero, $comentarios)
     {
-        //Validar que el cliente halla terminado de comer para mostrar en el login clientes
-        $parametros = $request->getParsedBody();
-
-        $codigo_mesa =  $parametros['codigo_mesa'];
-        $codigo_pedido =  $parametros['codigo_pedido'];
-
-        $punt_mesa =  $parametros['puntaje_mesa'];
-        $punt_restaurante =  $parametros['puntaje_restaurante'];
-        $punt_mozo =  $parametros['puntaje_mozo'];
-        $punt_cocinero =  $parametros['puntaje_cocinero'];
-        $comentarios =  $parametros['comentarios'];
-
         $message = 'Encuesta registrada. Gracias por su tiempo';
 
         if (
@@ -71,7 +66,7 @@ class ClienteController
             && self::ValidarPuntajes($punt_mozo) && self::ValidarPuntajes($punt_cocinero)
         ) {
             if (strlen($comentarios) <= 66) {
-                Encuesta::crearEncuesta($codigo_mesa, $codigo_pedido, $punt_mesa, $punt_restaurante, $punt_mozo, $punt_cocinero, $comentarios);
+                Encuesta::crearEncuesta($codigo_mesa, $punt_mesa, $punt_restaurante, $punt_mozo, $punt_cocinero, $comentarios);
             } else {
                 $message = 'Error. Los comentarios deben contener 66 digitos';
             }
@@ -79,11 +74,7 @@ class ClienteController
             $message = 'Error. Ingresar solo numeros del 1 al 10';
         }
 
-        $msg = json_encode(array("Mensaje" => $message));
-
-        $response->getBody()->write($msg);
-        return $response
-            ->withHeader('Content-Type', 'application/json');
+        return array("Mensaje" => $message);
     }
 
     public static function ValidarPuntajes($puntaje)

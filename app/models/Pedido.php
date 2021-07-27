@@ -2,14 +2,8 @@
 
 namespace App\Models;
 
-use DateTime;
 use Exception;
-use Illuminate\Database\DBAL\TimestampType;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-
 
 class Pedido extends Model
 {
@@ -86,6 +80,11 @@ class Pedido extends Model
             ->get();
 
         $ret = "El pedido esta con demora";
+
+        if(!isset($tiempo_encontrado[0]->tiempo)){
+            throw new Exception("Error codigo invalido", 1);
+        }
+
         if (strtotime(date('Y:m:d H:i:s')) < strtotime($tiempo_encontrado[0]->tiempo)) {
 
             $ret = Pedido::CalcularDiffDates(date('Y:m:d H:i:s'), $tiempo_encontrado[0]->tiempo);
@@ -111,31 +110,30 @@ class Pedido extends Model
         return "$minuts: $seconds";
     }
 
-    public static function LoMasPedido()
+    public static function LoMasPedido($desde, $hasta)
     {
-        $producto = new Producto();
-
-        $productos_encontrados = $producto
-            ->select("productos.nombre", $producto::raw('COUNT(pedidos.id_producto) as total'))
+        return Producto::select("productos.nombre", Producto::raw('COUNT(pedidos.id_producto) as total'))
 
             ->join("pedidos", "pedidos.id_producto", "=", "productos.id")
 
             ->groupBy('productos.id')
+
+            ->whereBetween('pedidos.fecha_creacion', [$desde, $hasta])
 
             ->orderBy('total', 'DESC')
 
             ->take(3)
 
             ->get();
-
-        return $productos_encontrados;
     }
 
-    public static function LoMenosPedido()
+    public static function LoMenosPedido($desde, $hasta)
     {
         return Producto::select("productos.nombre", Producto::raw('COUNT(pedidos.id_producto) as total'))
 
             ->join("pedidos", "pedidos.id_producto", "=", "productos.id")
+
+            ->whereBetween('pedidos.fecha_creacion', [$desde, $hasta])
 
             ->groupBy('productos.id')
 
@@ -146,7 +144,7 @@ class Pedido extends Model
             ->get();
     }
 
-    public static function PedidosFueraDeTiempo()
+    public static function PedidosFueraDeTiempo($desde, $hasta)
     {
         return Pedido::select("pedidos.id_producto", "productos.nombre", Producto::raw('COUNT(pedidos.id_producto) as total'))
 
@@ -155,6 +153,8 @@ class Pedido extends Model
             ->join("productos", "pedidos.id_producto", "=", "productos.id")
 
             ->where('detalle_estado_pedido.estado', 'listo para servir')
+
+            ->whereBetween('pedidos.fecha_creacion', [$desde, $hasta])
 
             ->whereRaw("TIME(detalle_estado_pedido.fecha_creacion) >= TIME(pedidos.tiempo_estimado)")
 
@@ -165,17 +165,17 @@ class Pedido extends Model
             ->take(3)
 
             ->get();
-
-        // Producto::raw('COUNT(pedidos.id_producto) as total')
     }
 
-    public static function PedidosCancelados()
+    public static function PedidosCancelados($desde, $hasta)
     {
         return Pedido::select("productos.nombre", Producto::raw('COUNT(pedidos.id_producto) as total'))
 
             ->join("productos", "productos.id", "=", "pedidos.id_producto")
 
             ->join("detalle_estado_pedido", "detalle_estado_pedido.id_pedido", "=", "pedidos.id")
+
+            ->whereBetween('pedidos.fecha_creacion', [$desde, $hasta])
 
             ->where('detalle_estado_pedido.estado', 'cancelado')
 
@@ -199,7 +199,7 @@ class Pedido extends Model
         }
     }
 
-    public static function BuscarEstadosDePedidos()
+    public static function TraerEstadosDePedidos()
     {
         return DetalleEstadoPedido::selectRaw('pedidos.id, productos.nombre as nombre_producto, usuarios.usuario as empleado_encargado, max(fecha_creacion) as hora, detalle_estado_pedido.estado')
 

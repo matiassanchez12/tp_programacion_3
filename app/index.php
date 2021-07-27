@@ -60,12 +60,11 @@ $capsule->bootEloquent();
 
 $app->post('/login', \UsuarioController::class . ':Login');
 $app->post('/clientes', \ClienteController::class . ':LoginCliente');
-$app->post('/encuesta', \ClienteController::class . ':EncuestaCliente');
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
   $group->get('[/]', \UsuarioController::class . ':TraerTodos');
   $group->get('/{id}', \UsuarioController::class . ':TraerUno');
-  $group->post('/nuevo', \UsuarioController::class . ':CargarUno');
+  $group->post('/nuevo', \UsuarioController::class . ':CargarUno')->add(\MWPermisos::class . ':VerificarSoloSocios');
   $group->post('/actualizar-usuario', \UsuarioController::class . ':ModificarUno');
   $group->post('/borrar', \UsuarioController::class . ':BorrarUno');
 })->add(\MWAutentificar::class . ':VerificarTokenExpire');
@@ -75,43 +74,32 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('/{id}', \PedidoController::class . ':TraerUno');
   $group->post('/nuevo', \PedidoController::class . ':CargarUno')->add(\MWPermisos::class . ':VerificarUsuarioMozo');
   $group->post('/actualizar-estado', \PedidoController::class . ':ModificarUno')->add(\MWPermisos::class . ':VerificarEmpleadoDePedido');
-  $group->get('/estados/visualizar', \PedidoController::class . ':TraerEstados')->add(\MWPermisos::class . ':VerificarSoloSocios');
-});
+  $group->get('/estados/todos', \PedidoController::class . ':TraerEstados')->add(\MWPermisos::class . ':VerificarSoloSocios');
+})->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \ProductoController::class . ':TraerTodos');
   $group->get('/{id}', \ProductoController::class . ':TraerUno');
   $group->get('/tipo/{tipo}', \ProductoController::class . ':TraerProductosPorTipo');
-  $group->post('/nuevo', \ProductoController::class . ':CargarUno');
+  $group->post('/nuevo', \ProductoController::class . ':CargarUno')->add(\MWPermisos::class . ':VerificarSoloSocios');
 })->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
   $group->get('[/]', \MesaController::class . ':TraerTodos');
   $group->get('/{id}', \MesaController::class . ':TraerUno');
-  $group->post('/nuevo', \MesaController::class . ':CargarUno');
+  $group->post('/nuevo', \MesaController::class . ':CargarUno')->add(\MWPermisos::class . ':VerificarSoloSocios');
+  $group->post('/actualizar-estado', \MesaController::class . ':ModificarUno')->add(\MWPermisos::class . ':VerificarCambioEstadoMesa');
+ 
   $group->get('/archivos/guardar-csv', \MesaController::class . ':GuardarMesasEnCSV');
   $group->get('/archivos/leer-csv', \MesaController::class . ':LeerMesasEnCSV');
   $group->get('/archivos/descargar-pdf', \MesaController::class . ':GenerarPdf');
-  $group->post('/actualizar-estado', \MesaController::class . ':ModificarUno')->add(\MWPermisos::class . ':VerificarCambioEstadoMesa');
-});
-
-$app->group('/registros', function (RouteCollectorProxy $group) {
-  $group->get('/mesas', \MesaController::class . ':TraerRegistroMesas');
-  $group->get('/pedidos', \PedidoController::class . ':TraerRegistroPedidos');
-});
+})->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
 $app->group('/consultas', function (RouteCollectorProxy $group) {
   $group->post('/mesas', \MesaController::class . ':EstadisticaMesas');
-  $group->get('/usuarios/alta-usuarios', \UsuarioController::class . ':Ingresos');
-  $group->get('/usuarios/logueo-usuarios', \UsuarioController::class . ':Logueos');
-  $group->get('/usuarios/operaciones-usuarios', \UsuarioController::class . ':CantidadOperaciones');
-  $group->get('/usuarios/operaciones-sectores', \UsuarioController::class . ':OperacionesPorSector');
-  $group->get('/usuarios/operaciones-empleados', \UsuarioController::class . ':OperacionesPorEmpleado');
-  $group->get('/mesas/mas-usada', \MesaController::class . ':MesaMasUsada');
-  $group->get('/mesas/menos-usada', \MesaController::class . ':MesaMenosUsada');
-  $group->get('/mesas/mejores-comentarios', \MesaController::class . ':MesaMejoresComentarios');
-  $group->get('/mesas/peores-comentarios', \MesaController::class . ':MesaPeoresComentarios');
-});
+  $group->post('/usuarios', \UsuarioController::class . ':EstadisticasUsuarios');
+  $group->post('/pedidos', \PedidoController::class . ':EstadisticasPedidos');
+})->add(\MWAutentificar::class . ':VerificarTokenExpire');
 
 $app->get('[/]', function (Request $request, Response $response) {
   

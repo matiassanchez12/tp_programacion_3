@@ -17,15 +17,14 @@ class MesaController
   {
     $jwtHeader = $request->getHeaderLine('Authorization');
 
-    $parametros = $request->getParsedBody();
-
     $mesa = new Mesa();
+    $mesa->estado_actual = 'cerrada';
     $mesa->codigo = GenerateRandomToken::getToken(5);
     $mesa->save();
 
     RegistroDeAcciones::crearRegistro(MesaController::obtenerIdUsuario($jwtHeader), 'Alta de mesa');
 
-    $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+    $payload = json_encode(array("mensaje" => "Mesa creada con exito"));
 
     $response->getBody()->write($payload);
     return $response
@@ -141,20 +140,7 @@ class MesaController
   {
     $array_mesas = Archivos::CargarTxt('mesas.csv');
 
-    $nuevoArray = [];
-
-    foreach ($array_mesas as $mesa) {
-      $atributos = explode(",", $mesa);
-
-      $auxMesa = new stdClass();
-      $auxMesa->id = $atributos[0];
-      $auxMesa->estado_actual = $atributos[1];
-      $auxMesa->codigo = $atributos[2];
-
-      array_push($nuevoArray, $auxMesa);
-    }
-
-    $payload = json_encode(array("Mesas" => $nuevoArray));
+    $payload = json_encode(array("Mesas" => $array_mesas));
 
     $response->getBody()->write($payload);
     return $response
@@ -218,9 +204,12 @@ class MesaController
       case 'MasFacturo':
         $lista = Mesa::MasFacturo();
         break;
-        case 'MenosFacturo':
-          $lista = Mesa::MenosFacturo();
-          break;
+      case 'MenosFacturo':
+        $lista = Mesa::MenosFacturo();
+        break;
+      case 'ImporteEntreDosFecha':
+        $lista = Mesa::ImporteEntreDosFechas(date($parametros['desde']), date($parametros['hasta']));
+        break;
       default:
         $lista = "Error, ingresar valor valido";
         break;
