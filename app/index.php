@@ -99,7 +99,7 @@ $app->group('/consultas', function (RouteCollectorProxy $group) {
   $group->post('/mesas', \MesaController::class . ':EstadisticaMesas');
   $group->post('/usuarios', \UsuarioController::class . ':EstadisticasUsuarios');
   $group->post('/pedidos', \PedidoController::class . ':EstadisticasPedidos');
-})->add(\MWAutentificar::class . ':VerificarTokenExpire');
+});
 
 $app->get('[/]', function (Request $request, Response $response) {
   
